@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Вопросы по тегу: {{ tag_name }}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">📌 Вопросы по тегу: <span class="badge bg-primary">{{ tag_name }}</span></h1>
+
+{% for question in page %}
+<div class="question-card p-3 p-md-4">
+    <!-- такая же структура как в hot.html -->
+    <div class="row align-items-start g-3">
+        <div class="col-3 col-md-2 text-center">
+            <img src="https://randomuser.me/api/portraits/men/{{ forloop.counter }}.jpg" alt="avatar" class="avatar mb-2">
+            <div class="username">{{ question.author }}</div>
+        </div>
+        <div class="col-9 col-md-10">
+            <h3><a href="{% url 'questions:question' id=question.id %}" class="text-decoration-none" style="color: #1f2f4e;">{{ question.title }}</a></h3>
+            <p>{{ question.text }}</p>
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+                <div class="d-flex align-items-center gap-1">
+                    <span>🏷️</span>
+                    {% for tag in question.tags %}
+                    <a href="{% url 'questions:tag' tag_name=tag %}" class="tag">{{ tag }}</a>
+                    {% endfor %}
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <a href="{% url 'questions:question' id=question.id %}" class="answers-link">💬 {{ question.answers_count }} ответа</a>
+                    <div class="d-flex align-items-center gap-1">
+                        <button class="vote-btn up">👍</button>
+                        <span class="vote-count">{{ question.likes }}</span>
+                        <button class="vote-btn down">👎</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% empty %}
+<p>Вопросов по тегу "{{ tag_name }}" пока нет.</p>
+{% endfor %}
+
+{% include 'pagination.html' with page=page %}
+{% endblock %}

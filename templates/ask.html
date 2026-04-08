@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Задать вопрос{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">✏️ Задать новый вопрос</h1>
+
+<form method="post" action="{% url 'questions:ask' %}">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="title" class="form-label">Заголовок</label>
+        <input type="text" class="form-control" id="title" name="title" required>
+    </div>
+    <div class="mb-3">
+        <label for="text" class="form-label">Текст вопроса</label>
+        <textarea class="form-control" id="text" name="text" rows="5" required></textarea>
+    </div>
+    <div class="mb-3">
+        <label for="tags" class="form-label">Теги (через пробел)</label>
+        <input type="text" class="form-control" id="tags" name="tags" placeholder="python django учеба">
+    </div>
+    <button type="submit" class="btn btn-primary">Опубликовать</button>
+</form>
+{% endblock %}

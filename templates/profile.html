@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Мой профиль{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">👤 Мой профиль</h1>
+
+<form method="post" action="{% url 'core:profile' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="username" class="form-label">Имя пользователя</label>
+        <input type="text" class="form-control" id="username" name="username" value="Андрей С." required>
+    </div>
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" name="email" value="andrew@example.com" required>
+    </div>
+    <div class="mb-3">
+        <label for="avatar" class="form-label">Аватар</label>
+        <input type="file" class="form-control" id="avatar" name="avatar">
+    </div>
+    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+</form>
+{% endblock %}
