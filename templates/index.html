@@ -9,24 +9,24 @@
 <div class="question-card p-3 p-md-4">
     <div class="row align-items-start g-3">
         <div class="col-3 col-md-2 text-center">
-            <img src="https://randomuser.me/api/portraits/men/{{ forloop.counter }}.jpg" alt="avatar" class="avatar mb-2">
-            <div class="username">{{ question.author }}</div>
+            <img src="https://ui-avatars.com/api/?background=0D8ABC&color=fff&size=85&name={{ question.author.username|first }}" alt="avatar" class="avatar mb-2">
+            <div class="username">{{ question.author.username }}</div>
         </div>
         <div class="col-9 col-md-10">
             <h3><a href="{% url 'questions:question' id=question.id %}" class="text-decoration-none" style="color: #1f2f4e;">{{ question.title }}</a></h3>
-            <p>{{ question.text }}</p>
+            <p>{{ question.text|truncatewords:30 }}</p>
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
                 <div class="d-flex align-items-center gap-1">
                     <span>🏷️</span>
-                    {% for tag in question.tags %}
-                    <a href="{% url 'questions:tag' tag_name=tag %}" class="tag">{{ tag }}</a>
+                    {% for tag in question.tags.all %}
+                    <a href="{% url 'questions:tag' tag_name=tag.name %}" class="tag">{{ tag.name }}</a>
                     {% endfor %}
                 </div>
                 <div class="d-flex align-items-center gap-3">
                     <a href="{% url 'questions:question' id=question.id %}" class="answers-link">💬 {{ question.answers_count }} ответа</a>
                     <div class="d-flex align-items-center gap-1">
                         <button class="vote-btn up" title="Нравится">👍</button>
-                        <span class="vote-count">{{ question.likes }}</span>
+                        <span class="vote-count">{{ question.rating }}</span>
                         <button class="vote-btn down" title="Не нравится">👎</button>
                     </div>
                 </div>
@@ -35,7 +35,7 @@
     </div>
 </div>
 {% empty %}
-<p>Вопросов пока нет.</p>
+<p>Вопросов пока нет. Будьте первым!</p>
 {% endfor %}
 
 {% include 'pagination.html' with page=page %}
