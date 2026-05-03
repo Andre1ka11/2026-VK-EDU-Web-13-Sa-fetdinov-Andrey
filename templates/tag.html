@@ -25,9 +25,15 @@
                 <div class="d-flex align-items-center gap-3">
                     <a href="{% url 'questions:question' id=question.id %}" class="answers-link">💬 {{ question.answers_count }} ответа</a>
                     <div class="d-flex align-items-center gap-1">
-                        <button class="vote-btn up">👍</button>
-                        <span class="vote-count">{{ question.rating }}</span>
-                        <button class="vote-btn down">👎</button>
+                        {% if user.is_authenticated %}
+                            <button class="vote-btn up" title="Нравится">👍</button>
+                            <span class="vote-count">{{ question.rating }}</span>
+                            <button class="vote-btn down" title="Не нравится">👎</button>
+                        {% else %}
+                            <button class="vote-btn up disabled" title="Войдите, чтобы оценить" disabled style="opacity:0.5; cursor:not-allowed;">👍</button>
+                            <span class="vote-count">{{ question.rating }}</span>
+                            <button class="vote-btn down disabled" title="Войдите, чтобы оценить" disabled style="opacity:0.5; cursor:not-allowed;">👎</button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
