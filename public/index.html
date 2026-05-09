@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniAsk — Вопросы по учёбе</title>
+    <link rel="icon" type="image/jpeg" href="https://i.pinimg.com/736x/e5/fc/cb/e5fccb7a283843ea64ae66f5a1425e4c.jpg">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #f4f7fc;
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem 0;
+        }
+
+        /* ========== ШАПКА ========== */
+        .site-header {
+            background: #fff;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid #e8edf3;
+            padding: 0.7rem 0;
+        }
+
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.7rem;
+            color: #2c3e66 !important;
+            white-space: nowrap;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .search-form {
+            display: flex;
+            flex: 3 1 250px;
+            min-width: 180px;
+        }
+
+        .search-form .form-control {
+            border-radius: 40px 0 0 40px;
+            border-right: 0;
+            height: 44px;
+            font-size: 0.95rem;
+        }
+
+        .search-form .btn {
+            border-radius: 0 40px 40px 0;
+            height: 44px;
+            padding-left: 1.2rem;
+            padding-right: 1.2rem;
+            white-space: nowrap;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-shrink: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn-login,
+        .btn-register,
+        .btn-ask {
+            border-radius: 40px;
+            padding: 8px 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.25s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            white-space: nowrap;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-login {
+            background: transparent;
+            color: #0d6efd;
+            border: 2px solid #0d6efd;
+        }
+
+        .btn-login:hover {
+            background: #0d6efd;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(13, 110, 253, 0.25);
+        }
+
+        .btn-register {
+            background: #0d6efd;
+            color: white;
+            border: 2px solid #0d6efd;
+        }
+
+        .btn-register:hover {
+            background: #0b5ed7;
+            border-color: #0b5ed7;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(13, 110, 253, 0.35);
+        }
+
+        .btn-ask {
+            background: #198754;
+            color: white;
+            border: 2px solid #198754;
+        }
+
+        .btn-ask:hover {
+            background: #157347;
+            border-color: #157347;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(25, 135, 84, 0.35);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 50px;
+            transition: background 0.2s;
+        }
+
+        .user-profile:hover {
+            background: #f0f2f5;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid #e8edf3;
+        }
+
+        .user-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #2c3e66;
+            white-space: nowrap;
+        }
+
+        /* ========== КАРТОЧКИ ВОПРОСОВ ========== */
+        .question-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            margin-bottom: 1.8rem;
+            border: 1px solid #e9edf2;
+            transition: 0.2s;
+        }
+
+        .question-card:hover {
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .avatar {
+            width: 85px;
+            height: 85px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .username {
+            font-weight: 800;
+            font-size: 1rem;
+            color: #1f4f8a;
+            margin-top: 0.3rem;
+            letter-spacing: 0.3px;
+            font-family: inherit;
+        }
+
+        .username:hover {
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 3px rgba(26, 93, 156, 0.2);
+        }
+
+        .vote-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.1s;
+            padding: 4px 6px;
+            opacity: 0.7;
+        }
+
+        .vote-btn:hover {
+            transform: scale(1.15);
+            opacity: 1;
+        }
+
+        .vote-btn.up.active {
+            color: #198754;
+            opacity: 1;
+        }
+
+        .vote-btn.down.active {
+            color: #dc3545;
+            opacity: 1;
+        }
+
+        .vote-count {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #2c3e66;
+            min-width: 28px;
+            text-align: center;
+        }
+
+        .answers-link {
+            text-decoration: none;
+            color: #0d6efd;
+            font-weight: 500;
+            transition: 0.1s;
+        }
+
+        .answers-link:hover {
+            text-decoration: underline;
+            color: #0a58ca;
+        }
+
+        .tag {
+            background: #eef2f7;
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            color: #1f3a5f;
+            display: inline-block;
+            margin-right: 6px;
+            margin-bottom: 6px;
+            transition: 0.1s;
+        }
+
+        .tag:hover {
+            background: #dee5ed;
+        }
+
+        /* ========== САЙДБАР ========== */
+        .sidebar-card {
+            background: white;
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            margin-bottom: 1.8rem;
+        }
+
+        .sidebar-card .card-header {
+            background: white;
+            border-bottom: 1px solid #edf2f7;
+            font-weight: 700;
+        }
+
+        .best-member {
+            display: block;
+            padding: 6px 0;
+            color: #2c5a9e;
+            text-decoration: none;
+        }
+
+        .best-member:hover {
+            text-decoration: underline;
+        }
+
+                        .pagination {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+            list-style: none;
+        }
+
+        .pagination .page-item {
+            flex: 0 0 auto;
+            list-style: none;
+        }
+
+        .pagination .page-item::before,
+        .pagination .page-item::marker {
+            display: none;
+            content: none;
+        }
+
+        .pagination .page-link {
+            border-radius: 50px;
+            color: #2c3e66;
+            border: none;
+            background: white;
+            white-space: nowrap;
+            min-width: 44px;
+            height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 0 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .pagination .page-link:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .pagination .page-item.active .page-link {
+            background: #2c5a9e;
+            color: white;
+            box-shadow: 0 4px 12px rgba(44, 90, 158, 0.3);
+        }
+
+        /* Стрелки « и » */
+        .pagination .page-item:first-child .page-link,
+        .pagination .page-item:last-child .page-link {
+            min-width: 44px;
+            font-size: 1.2rem;
+            font-weight: normal;
+        }
+        /* ========== ФУТЕР ========== */
+        .footer {
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            padding: 1.5rem 0;
+            margin-top: 2rem;
+        }
+
+        /* ========== СТРУКТУРА КОНТЕНТА (flex, сайдбар всегда справа) ========== */
+        .content-wrapper {
+            display: flex;
+            gap: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .content-main {
+            flex: 3;
+            min-width: 250px;
+        }
+
+        .content-sidebar {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        /* ========== АДАПТИВ ========== */
+        @media (max-width: 992px) {
+            .navbar-brand {
+                font-size: 1.4rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-form {
+                width: 100%;
+            }
+            .header-right {
+                justify-content: space-between;
+                width: 100%;
+            }
+            .header-actions {
+                justify-content: center;
+            }
+            .navbar-brand {
+                text-align: center;
+            }
+            .avatar {
+                width: 65px;
+                height: 65px;
+            }
+            .vote-btn {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            main {
+                padding: 1.25rem 0;
+            }
+            .avatar {
+                width: 55px;
+                height: 55px;
+            }
+            .user-name {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header class="site-header">
+    <div class="container">
+        <div class="header-container">
+            <a class="navbar-brand" href="/">🎓 UniAsk</a>
+            <form class="search-form">
+                <input class="form-control" type="search" placeholder="Поиск по сайту..." aria-label="Поиск">
+                <button class="btn btn-outline-primary" type="submit">Найти</button>
+            </form>
+            <div class="header-right">
+                <div class="header-actions">
+                    <a href="/login.html" class="btn btn-login">Войти</a>
+                    <a href="/signup.html" class="btn btn-register">Регистрация</a>
+                    <a href="/ask.html" class="btn btn-ask">Задать вопрос</a>
+                </div>
+                <div class="user-profile">
+                    <img src="https://i.pinimg.com/736x/f3/ab/8e/f3ab8eb370fe1cbc051adf77f06ec893.jpg" alt="avatar" class="user-avatar">
+                    <span class="user-name">Андрей С.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <div class="content-wrapper">
+        <!-- Левая колонка: список вопросов -->
+        <div class="content-main">
+            <h1 class="mb-4" style="font-weight: 700; color: #1f2f4e;">📚 Свежие вопросы от студентов</h1>
+
+            <!-- Вопрос 1 -->
+            <div class="question-card p-3 p-md-4">
+                <div class="row align-items-start g-3">
+                    <div class="col-3 col-md-2 text-center">
+                        <img src="https://media.istockphoto.com/id/614333298/ru/%D1%84%D0%BE%D1%82%D0%BE/%D0%B7%D0%B0%D0%B1%D0%B0%D0%B2%D0%BD%D1%8B%D0%B9-%D0%B1%D0%BE%D1%82%D0%B0%D0%BD%D0%B8%D0%BA-%D0%B8%D0%BB%D0%B8-%D0%BA%D0%BE%D0%BC%D0%BF%D1%8C%D1%8E%D1%82%D0%B5%D1%80%D1%89%D0%B8%D0%BA-%D0%B5%D1%81%D1%82%D1%8C-%D0%B8%D0%B4%D0%B5%D1%8F.jpg?s=170667a&w=0&k=20&c=Evv2MEzG_xH0IkRxz6aW9FWNOpt8nSwsmhvwoSUe3LY=" alt="avatar" class="avatar mb-2">
+                        <div class="username">КнижныйЧервь</div>
+                    </div>
+                    <div class="col-9 col-md-10">
+                        <h3><a href="/question.html" class="text-decoration-none" style="color: #1f2f4e;">Как сдать математический анализ, если я гуманитарий?</a></h3>
+                        <p>Препод требует доказательства теорем, а я вообще не понимаю, с какой стороны подойти. Может, есть какие-то лайфхаки или книжки для «чайников»? Сессия близко...</p>
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+                            <div class="d-flex align-items-center gap-1">
+                                <span>🏷️</span>
+                                <a href="#" class="tag">матан</a>
+                                <a href="#" class="tag">сессия</a>
+                                <a href="#" class="tag">1-й курс</a>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <a href="/question.html" class="answers-link">💬 3 ответа</a>
+                                <div class="d-flex align-items-center gap-1">
+                                    <button class="vote-btn up" title="Нравится">👍</button>
+                                    <span class="vote-count">15</span>
+                                    <button class="vote-btn down" title="Не нравится">👎</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вопрос 2 (активный лайк) -->
+            <div class="question-card p-3 p-md-4">
+                <div class="row align-items-start g-3">
+                    <div class="col-3 col-md-2 text-center">
+                        <img src="https://i.pinimg.com/originals/93/63/da/9363da846a12eabcba097c918c9c5307.jpg" alt="avatar" class="avatar mb-2">
+                        <div class="username">КодерБезСна</div>
+                    </div>
+                    <div class="col-9 col-md-10">
+                        <h3><a href="/question.html" class="text-decoration-none" style="color: #1f2f4e;">Django или Flask для курсача на 3 курсе?</a></h3>
+                        <p>Надо сделать веб-приложение за месяц. Django мощный, но тяжёлый. Flask — простой, но всего не хватает. Что выберут работодатели потом в портфолио?</p>
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+                            <div class="d-flex align-items-center gap-1">
+                                <span>🏷️</span>
+                                <a href="#" class="tag">django</a>
+                                <a href="#" class="tag">flask</a>
+                                <a href="#" class="tag">веб-разработка</a>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <a href="/question.html" class="answers-link">💬 12 ответов</a>
+                                <div class="d-flex align-items-center gap-1">
+                                    <button class="vote-btn up active">👍</button>
+                                    <span class="vote-count">42</span>
+                                    <button class="vote-btn down">👎</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вопрос 3 (активный дизлайк) -->
+            <div class="question-card p-3 p-md-4">
+                <div class="row align-items-start g-3">
+                    <div class="col-3 col-md-2 text-center">
+                        <img src="https://avatars.mds.yandex.net/i?id=c922bb0fa52c97f4b47688818a23ef2c_l-10698057-images-thumbs&n=13" alt="avatar" class="avatar mb-2">
+                        <div class="username">БудущийТимлид</div>
+                    </div>
+                    <div class="col-9 col-md-10">
+                        <h3><a href="/question.html" class="text-decoration-none" style="color: #1f2f4e;">Где найти стажировку студенту 2 курса без опыта?</a></h3>
+                        <p>Везде просят год коммерческого опыта, а я только базы данных и питон чуть-чуть. Может, есть компании, которые реально берут новичков? Или только курсы?</p>
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+                            <div class="d-flex align-items-center gap-1">
+                                <span>🏷️</span>
+                                <a href="#" class="tag">стажировка</a>
+                                <a href="#" class="tag">карьера</a>
+                                <a href="#" class="tag">it</a>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <a href="/question.html" class="answers-link">💬 5 ответов</a>
+                                <div class="d-flex align-items-center gap-1">
+                                    <button class="vote-btn up">👍</button>
+                                    <span class="vote-count">7</span>
+                                    <button class="vote-btn down active">👎</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вопрос 4 -->
+            <div class="question-card p-3 p-md-4">
+                <div class="row align-items-start g-3">
+                    <div class="col-3 col-md-2 text-center">
+                        <img src="https://i.sstatic.net/yZNR4.jpg" alt="avatar" class="avatar mb-2">
+                        <div class="username">ЛюблюНормализацию</div>
+                    </div>
+                    <div class="col-9 col-md-10">
+                        <h3><a href="/question.html" class="text-decoration-none" style="color: #1f2f4e;">Как не завалить экзамен по базам данных? SQL кошмар</a></h3>
+                        <p>То джойны не сходятся, то индексы тормозят. Препод даёт реальные кейсы из 90х. Может, есть симулятор запросов или понятный курс на ютубе?</p>
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+                            <div class="d-flex align-items-center gap-1">
+                                <span>🏷️</span>
+                                <a href="#" class="tag">sql</a>
+                                <a href="#" class="tag">базы_данных</a>
+                                <a href="#" class="tag">экзамен</a>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <a href="/question.html" class="answers-link">💬 9 ответов</a>
+                                <div class="d-flex align-items-center gap-1">
+                                    <button class="vote-btn up">👍</button>
+                                    <span class="vote-count">23</span>
+                                    <button class="vote-btn down">👎</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вопрос 5 -->
+            <div class="question-card p-3 p-md-4">
+                <div class="row align-items-start g-3">
+                    <div class="col-3 col-md-2 text-center">
+                        <img src="https://i.pinimg.com/originals/41/0e/46/410e463bc8e694b4400e8c8034c6f2f1.jpg" alt="avatar" class="avatar mb-2">
+                        <div class="username">ВечныйКодер</div>
+                    </div>
+                    <div class="col-9 col-md-10">
+                        <h3><a href="/question.html" class="text-decoration-none" style="color: #1f2f4e;">Как совмещать учёбу, работу и не вылететь?</a></h3>
+                        <p>Работаю 4/2, на парах сплю. Стипендия копейки. Может, есть вузы с вечерним или дистантом нормальным? Или только отчисление?</p>
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+                            <div class="d-flex align-items-center gap-1">
+                                <span>🏷️</span>
+                                <a href="#" class="tag">стипендия</a>
+                                <a href="#" class="tag">работа</a>
+                                <a href="#" class="tag">студент</a>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <a href="/question.html" class="answers-link">💬 8 ответов</a>
+                                <div class="d-flex align-items-center gap-1">
+                                    <button class="vote-btn up">👍</button>
+                                    <span class="vote-count">31</span>
+                                    <button class="vote-btn down">👎</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Пагинация -->
+            <nav class="mt-5">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">«</span>
+                        </a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item"><a class="page-link" href="#">4</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">»</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div> <!-- закрываем content-main -->
+
+        <!-- Правая колонка: сайдбар (всегда справа, не переносится) -->
+        <div class="content-sidebar">
+            <div class="sidebar-card card">
+                <div class="card-header">Популярные теги</div>
+                <div class="card-body">
+                    <a href="#" class="tag">матан</a>
+                    <a href="#" class="tag">django</a>
+                    <a href="#" class="tag">сессия</a>
+                    <a href="#" class="tag">sql</a>
+                    <a href="#" class="tag">стажировка</a>
+                    <a href="#" class="tag">диплом</a>
+                    <a href="#" class="tag">стипендия</a>
+                </div>
+            </div>
+            <div class="sidebar-card card">
+                <div class="card-header">Лучшие участники</div>
+                <div class="card-body">
+                    <a href="#" class="best-member">Mr. Freeman (7K)</a>
+                    <a href="#" class="best-member">Dr. House (5K)</a>
+                    <a href="#" class="best-member">Bender (4.2K)</a>
+                    <a href="#" class="best-member">Queen Victoria (3.9K)</a>
+                    <a href="#" class="best-member">V Pupkin (3.5K)</a>
+                </div>
+            </div>
+        </div>
+    </div> <!-- закрываем content-wrapper -->
+</main>
+
+<footer class="footer">
+    <div class="container text-center text-muted">
+        <small>© 2026 UniAsk — Помогаем студентам учиться без боли 🎓</small>
+    </div>
+</footer>
+
+<script src="/static/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

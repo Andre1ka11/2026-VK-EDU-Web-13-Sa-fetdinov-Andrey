@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ question.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .answer-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        border: 1px solid #e9edf2;
+        margin-bottom: 1rem;
+    }
+    .vote-btn.voted {
+        opacity: 1 !important;
+        transform: scale(1.2);
+    }
+    .correct-badge {
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="question-card p-3 p-md-4 mb-4">
+    <div class="row align-items-start g-3">
+        <div class="col-3 col-md-2 text-center">
+            {% if question.author.profile.avatar %}
+                <img src="{{ question.author.profile.avatar.url }}" alt="avatar" class="avatar mb-2">
+            {% else %}
+                <img src="https://ui-avatars.com/api/?background=0D8ABC&color=fff&size=85&name={{ question.author.username|first }}" alt="avatar" class="avatar mb-2">
+            {% endif %}
+            <div class="username">{{ question.author.username }}</div>
+            <div class="text-muted small">{{ question.created_at|date:"d.m.Y H:i" }}</div>
+        </div>
+        <div class="col-9 col-md-10">
+            <h1 style="color: #1f2f4e;">{{ question.title }}</h1>
+            <p>{{ question.text }}</p>
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+                <div class="d-flex align-items-center gap-1">
+                    <span>🏷️</span>
+                    {% for tag in question.tags.all %}
+                    <a href="{% url 'questions:tag' tag_name=tag.name %}" class="tag">{{ tag.name }}</a>
+                    {% endfor %}
+                </div>
+                <div class="d-flex align-items-center gap-1">
+                    {% if user.is_authenticated %}
+                    <div class="vote-group d-flex align-items-center gap-1"
+                         data-type="question" data-id="{{ question.id }}">
+                        <button class="vote-btn {% if question.id in liked_questions %}voted{% endif %}"
+                                data-value="1"
+                                {% if question.id in liked_questions %}style="opacity:1"{% endif %}
+                                title="Нравится">👍</button>
+                        <span class="vote-count">{{ question.rating }}</span>
+                        <button class="vote-btn {% if question.id in disliked_questions %}voted{% endif %}"
+                                data-value="-1"
+                                {% if question.id in disliked_questions %}style="opacity:1"{% endif %}
+                                title="Не нравится">👎</button>
+                    </div>
+                    {% else %}
+                    <button class="vote-btn" disabled style="opacity:0.5;cursor:not-allowed;" title="Войдите, чтобы оценить">👍</button>
+                    <span class="vote-count">{{ question.rating }}</span>
+                    <button class="vote-btn" disabled style="opacity:0.5;cursor:not-allowed;" title="Войдите, чтобы оценить">👎</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3 class="mb-3">Ответы ({{ question.answers.count }})</h3>
+
+{% for answer in page %}
+<div id="answer-{{ answer.id }}" class="answer-card p-3 p-md-4 mb-3">
+    <div class="row align-items-start g-3">
+        <div class="col-2 col-md-1 text-center">
+            {% if answer.author.profile.avatar %}
+                <img src="{{ answer.author.profile.avatar.url }}" alt="avatar" class="avatar-sm">
+            {% else %}
+                <img src="https://ui-avatars.com/api/?background=0D8ABC&color=fff&size=50&name={{ answer.author.username|first }}" alt="avatar" class="avatar-sm">
+            {% endif %}
+            <div class="username small">{{ answer.author.username }}</div>
+        </div>
+        <div class="col-10 col-md-11">
+            <p>{{ answer.text }}</p>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="text-muted small">{{ answer.created_at|date:"d.m.Y H:i" }}</div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    {% if user.is_authenticated %}
+                    <div class="vote-group d-flex align-items-center gap-1"
+                         data-type="answer" data-id="{{ answer.id }}">
+                        <button class="vote-btn {% if answer.id in liked_answers %}voted{% endif %}"
+                                data-value="1"
+                                {% if answer.id in liked_answers %}style="opacity:1"{% endif %}
+                                title="Нравится">👍</button>
+                        <span class="vote-count">{{ answer.rating }}</span>
+                        <button class="vote-btn {% if answer.id in disliked_answers %}voted{% endif %}"
+                                data-value="-1"
+                                {% if answer.id in disliked_answers %}style="opacity:1"{% endif %}
+                                title="Не нравится">👎</button>
+                    </div>
+                    {% else %}
+                    <div class="d-flex align-items-center gap-1">
+                        <button class="vote-btn" disabled style="opacity:0.5;cursor:not-allowed;">👍</button>
+                        <span class="vote-count">{{ answer.rating }}</span>
+                        <button class="vote-btn" disabled style="opacity:0.5;cursor:not-allowed;">👎</button>
+                    </div>
+                    {% endif %}
+
+                    <span class="correct-badge badge bg-success {% if not answer.is_correct %}d-none{% endif %}">
+                        ✓ Правильный ответ
+                    </span>
+
+                    {% if user == question.author %}
+                    <button class="mark-correct-btn btn btn-sm {% if answer.is_correct %}btn-warning{% else %}btn-outline-secondary{% endif %}"
+                            data-answer-id="{{ answer.id }}"
+                            data-question-id="{{ question.id }}">
+                        {% if answer.is_correct %}Снять отметку{% else %}Отметить правильным{% endif %}
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% empty %}
+<p>Пока нет ни одного ответа к этому вопросу. Будьте первым!</p>
+{% endfor %}
+
+{% include 'pagination.html' with page=page %}
+
+{% if user.is_authenticated %}
+    <div class="mt-5">
+        <h3>Ваш ответ</h3>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="mb-3">
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="alert alert-danger mt-1">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">Отправить ответ</button>
+        </form>
+    </div>
+{% else %}
+    <div class="mt-5 alert alert-info">
+        <a href="{% url 'core:login' %}?next={{ request.path }}">Войдите</a>, чтобы оставить ответ.
+    </div>
+{% endif %}
+{% endblock %}
