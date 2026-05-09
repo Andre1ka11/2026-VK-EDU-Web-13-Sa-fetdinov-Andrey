@@ -1,6 +1,22 @@
 from django import forms
 from .models import Answer, Question, Tag
 
+
+class VoteForm(forms.Form):
+    id = forms.IntegerField(min_value=1)
+    value = forms.IntegerField()
+
+    def clean_value(self):
+        value = self.cleaned_data.get('value')
+        if value not in (1, -1):
+            raise forms.ValidationError('Значение должно быть 1 (лайк) или -1 (дизлайк).')
+        return value
+
+
+class CorrectAnswerForm(forms.Form):
+    question_id = forms.IntegerField(min_value=1)
+    answer_id = forms.IntegerField(min_value=1)
+
 class AnswerForm(forms.ModelForm):
     class Meta:
         model = Answer

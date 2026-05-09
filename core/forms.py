@@ -1,7 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from django.contrib.auth import password_validation
 from .models import Profile
 
 class LoginForm(forms.Form):
@@ -27,7 +26,7 @@ class ProfileForm(forms.ModelForm):
 
     class Meta:
         model = Profile
-        fields = ('avatar',)  # avatar пока не обрабатываем, но поле есть
+        fields = ('avatar',)
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
@@ -35,6 +34,20 @@ class ProfileForm(forms.ModelForm):
         if self.user:
             self.fields['username'].initial = self.user.username
             self.fields['email'].initial = self.user.email
+
+    def clean_avatar(self):
+        avatar = self.cleaned_data.get('avatar')
+        if avatar and hasattr(avatar, 'name'):
+            allowed_extensions = {'jpg', 'jpeg', 'png', 'gif', 'webp'}
+            ext = avatar.name.rsplit('.', 1)[-1].lower() if '.' in avatar.name else ''
+            if ext not in allowed_extensions:
+                raise forms.ValidationError(
+                    f'Недопустимый формат. Разрешены: {", ".join(sorted(allowed_extensions))}'
+                )
+            max_size = 5 * 1024 * 1024  # 5 MB
+            if avatar.size > max_size:
+                raise forms.ValidationError('Размер файла не должен превышать 5 МБ.')
+        return avatar
 
     def save(self, commit=True):
         if self.user:

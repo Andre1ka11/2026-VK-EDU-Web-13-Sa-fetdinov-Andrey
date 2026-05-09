@@ -56,8 +56,13 @@ class Answer(models.Model):
         return f'Ответ на {self.question.title[:20]}'
 
 class QuestionLike(models.Model):
+    LIKE = 1
+    DISLIKE = -1
+    VALUE_CHOICES = [(LIKE, 'Лайк'), (DISLIKE, 'Дизлайк')]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь')
     question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name='Вопрос')
+    value = models.SmallIntegerField(choices=VALUE_CHOICES, default=LIKE, verbose_name='Значение')
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
@@ -66,8 +71,13 @@ class QuestionLike(models.Model):
         verbose_name_plural = 'Лайки вопросов'
 
 class AnswerLike(models.Model):
+    LIKE = 1
+    DISLIKE = -1
+    VALUE_CHOICES = [(LIKE, 'Лайк'), (DISLIKE, 'Дизлайк')]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь')
     answer = models.ForeignKey(Answer, on_delete=models.CASCADE, verbose_name='Ответ')
+    value = models.SmallIntegerField(choices=VALUE_CHOICES, default=LIKE, verbose_name='Значение')
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:

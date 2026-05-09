@@ -2,11 +2,34 @@
 
 {% block title %}{{ question.title }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .answer-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        border: 1px solid #e9edf2;
+        margin-bottom: 1rem;
+    }
+    .vote-btn.voted {
+        opacity: 1 !important;
+        transform: scale(1.2);
+    }
+    .correct-badge {
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="question-card p-3 p-md-4 mb-4">
     <div class="row align-items-start g-3">
         <div class="col-3 col-md-2 text-center">
-            <img src="https://ui-avatars.com/api/?background=0D8ABC&color=fff&size=85&name={{ question.author.username|first }}" alt="avatar" class="avatar mb-2">
+            {% if question.author.profile.avatar %}
+                <img src="{{ question.author.profile.avatar.url }}" alt="avatar" class="avatar mb-2">
+            {% else %}
+                <img src="https://ui-avatars.com/api/?background=0D8ABC&color=fff&size=85&name={{ question.author.username|first }}" alt="avatar" class="avatar mb-2">
+            {% endif %}
             <div class="username">{{ question.author.username }}</div>
             <div class="text-muted small">{{ question.created_at|date:"d.m.Y H:i" }}</div>
         </div>
@@ -20,18 +43,25 @@
                     <a href="{% url 'questions:tag' tag_name=tag.name %}" class="tag">{{ tag.name }}</a>
                     {% endfor %}
                 </div>
-                <div class="d-flex align-items-center gap-3">
-                    <div class="d-flex align-items-center gap-1">
-                        {% if user.is_authenticated %}
-                            <button class="vote-btn up" title="Нравится">👍</button>
-                            <span class="vote-count">{{ question.rating }}</span>
-                            <button class="vote-btn down" title="Не нравится">👎</button>
-                        {% else %}
-                            <button class="vote-btn up disabled" title="Войдите, чтобы оценить" disabled style="opacity:0.5; cursor:not-allowed;">👍</button>
-                            <span class="vote-count">{{ question.rating }}</span>
-                            <button class="vote-btn down disabled" title="Войдите, чтобы оценить" disabled style="opacity:0.5; cursor:not-allowed;">👎</button>
-                        {% endif %}
+                <div class="d-flex align-items-center gap-1">
+                    {% if user.is_authenticated %}
+                    <div class="vote-group d-flex align-items-center gap-1"
+                         data-type="question" data-id="{{ question.id }}">
+                        <button class="vote-btn {% if question.id in liked_questions %}voted{% endif %}"
+                                data-value="1"
+                                {% if question.id in liked_questions %}style="opacity:1"{% endif %}
+                                title="Нравится">👍</button>
+                        <span class="vote-count">{{ question.rating }}</span>
+                        <button class="vote-btn {% if question.id in disliked_questions %}voted{% endif %}"
+                                data-value="-1"
+                                {% if question.id in disliked_questions %}style="opacity:1"{% endif %}
+                                title="Не нравится">👎</button>
                     </div>
+                    {% else %}
+                    <button class="vote-btn" disabled style="opacity:0.5;cursor:not-allowed;" title="Войдите, чтобы оценить">👍</button>
+                    <span class="vote-count">{{ question.rating }}</span>
+                    <button class="vote-btn" disabled style="opacity:0.5;cursor:not-allowed;" title="Войдите, чтобы оценить">👎</button>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -44,27 +74,49 @@
 <div id="answer-{{ answer.id }}" class="answer-card p-3 p-md-4 mb-3">
     <div class="row align-items-start g-3">
         <div class="col-2 col-md-1 text-center">
-            <img src="https://ui-avatars.com/api/?background=0D8ABC&color=fff&size=50&name={{ answer.author.username|first }}" alt="avatar" class="avatar-sm">
+            {% if answer.author.profile.avatar %}
+                <img src="{{ answer.author.profile.avatar.url }}" alt="avatar" class="avatar-sm">
+            {% else %}
+                <img src="https://ui-avatars.com/api/?background=0D8ABC&color=fff&size=50&name={{ answer.author.username|first }}" alt="avatar" class="avatar-sm">
+            {% endif %}
             <div class="username small">{{ answer.author.username }}</div>
         </div>
         <div class="col-10 col-md-11">
             <p>{{ answer.text }}</p>
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div class="text-muted small">{{ answer.created_at|date:"d.m.Y H:i" }}</div>
-                <div class="d-flex align-items-center gap-2">
-                    <div class="d-flex align-items-center gap-1">
-                        {% if user.is_authenticated %}
-                            <button class="vote-btn up" title="Нравится">👍</button>
-                            <span class="vote-count">{{ answer.rating }}</span>
-                            <button class="vote-btn down" title="Не нравится">👎</button>
-                        {% else %}
-                            <button class="vote-btn up disabled" title="Войдите, чтобы оценить" disabled style="opacity:0.5; cursor:not-allowed;">👍</button>
-                            <span class="vote-count">{{ answer.rating }}</span>
-                            <button class="vote-btn down disabled" title="Войдите, чтобы оценить" disabled style="opacity:0.5; cursor:not-allowed;">👎</button>
-                        {% endif %}
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    {% if user.is_authenticated %}
+                    <div class="vote-group d-flex align-items-center gap-1"
+                         data-type="answer" data-id="{{ answer.id }}">
+                        <button class="vote-btn {% if answer.id in liked_answers %}voted{% endif %}"
+                                data-value="1"
+                                {% if answer.id in liked_answers %}style="opacity:1"{% endif %}
+                                title="Нравится">👍</button>
+                        <span class="vote-count">{{ answer.rating }}</span>
+                        <button class="vote-btn {% if answer.id in disliked_answers %}voted{% endif %}"
+                                data-value="-1"
+                                {% if answer.id in disliked_answers %}style="opacity:1"{% endif %}
+                                title="Не нравится">👎</button>
                     </div>
-                    {% if answer.is_correct %}
-                    <span class="badge bg-success">✓ Правильный ответ</span>
+                    {% else %}
+                    <div class="d-flex align-items-center gap-1">
+                        <button class="vote-btn" disabled style="opacity:0.5;cursor:not-allowed;">👍</button>
+                        <span class="vote-count">{{ answer.rating }}</span>
+                        <button class="vote-btn" disabled style="opacity:0.5;cursor:not-allowed;">👎</button>
+                    </div>
+                    {% endif %}
+
+                    <span class="correct-badge badge bg-success {% if not answer.is_correct %}d-none{% endif %}">
+                        ✓ Правильный ответ
+                    </span>
+
+                    {% if user == question.author %}
+                    <button class="mark-correct-btn btn btn-sm {% if answer.is_correct %}btn-warning{% else %}btn-outline-secondary{% endif %}"
+                            data-answer-id="{{ answer.id }}"
+                            data-question-id="{{ question.id }}">
+                        {% if answer.is_correct %}Снять отметку{% else %}Отметить правильным{% endif %}
+                    </button>
                     {% endif %}
                 </div>
             </div>
