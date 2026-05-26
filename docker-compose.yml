@@ -2,13 +2,13 @@ services:
   db:
     image: postgres:15
     container_name: postgres-unidb-compose
+    env_file: .env.docker
     environment:
-      POSTGRES_DB: unidb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
     networks:
       - django_network
 
@@ -22,15 +22,7 @@ services:
       - "8000:8000"
     depends_on:
       - db
-    environment:
-      - DEBUG=True
-      - SECRET_KEY=your-secret-key-here
-      - DB_ENGINE=django.db.backends.postgresql
-      - DB_NAME=unidb
-      - DB_USER=postgres
-      - DB_PASSWORD=mysecretpassword
-      - DB_HOST=db
-      - DB_PORT=5432
+    env_file: .env.docker
     networks:
       - django_network
 

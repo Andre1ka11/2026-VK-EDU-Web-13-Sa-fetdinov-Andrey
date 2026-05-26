@@ -302,6 +302,7 @@
     <div class="container">
         <div class="header-container">
             <a class="navbar-brand" href="{% url 'questions:index' %}">🎓 UniAsk</a>
+            <a href="{% url 'questions:hot' %}" style="font-weight:600;color:#e85d04;text-decoration:none;white-space:nowrap;">🔥 Лучшие</a>
             <form class="search-form" action="{% url 'questions:index' %}" method="get">
                 <input class="form-control" type="search" name="q" placeholder="Поиск по сайту..." aria-label="Поиск">
                 <button class="btn btn-outline-primary" type="submit">Найти</button>
@@ -334,23 +335,21 @@
             <div class="sidebar-card card">
                 <div class="card-header">Популярные теги</div>
                 <div class="card-body">
-                    <a href="{% url 'questions:tag' tag_name='матан' %}" class="tag">матан</a>
-                    <a href="{% url 'questions:tag' tag_name='django' %}" class="tag">django</a>
-                    <a href="{% url 'questions:tag' tag_name='сессия' %}" class="tag">сессия</a>
-                    <a href="{% url 'questions:tag' tag_name='sql' %}" class="tag">sql</a>
-                    <a href="{% url 'questions:tag' tag_name='стажировка' %}" class="tag">стажировка</a>
-                    <a href="{% url 'questions:tag' tag_name='диплом' %}" class="tag">диплом</a>
-                    <a href="{% url 'questions:tag' tag_name='стипендия' %}" class="tag">стипендия</a>
+                    {% for tag in popular_tags %}
+                        <a href="{% url 'questions:tag' tag_name=tag.name %}" class="tag">{{ tag.name }}</a>
+                    {% empty %}
+                        <span class="text-muted small">Тегов пока нет</span>
+                    {% endfor %}
                 </div>
             </div>
             <div class="sidebar-card card">
                 <div class="card-header">Лучшие участники</div>
                 <div class="card-body">
-                    <a href="#" class="best-member">Mr. Freeman (7K)</a>
-                    <a href="#" class="best-member">Dr. House (5K)</a>
-                    <a href="#" class="best-member">Bender (4.2K)</a>
-                    <a href="#" class="best-member">Queen Victoria (3.9K)</a>
-                    <a href="#" class="best-member">V Pupkin (3.5K)</a>
+                    {% for profile in top_users %}
+                        <span class="best-member">{{ profile.user.username }} ({{ profile.rating }})</span>
+                    {% empty %}
+                        <span class="text-muted small">Пока нет данных</span>
+                    {% endfor %}
                 </div>
             </div>
         </div>
