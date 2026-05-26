@@ -3,9 +3,11 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import Profile
 
+
 class LoginForm(forms.Form):
     username = forms.CharField(label='Имя пользователя', max_length=150)
     password = forms.CharField(label='Пароль', widget=forms.PasswordInput)
+
 
 class SignupForm(UserCreationForm):
     email = forms.EmailField(label='Email', required=True)
@@ -19,6 +21,13 @@ class SignupForm(UserCreationForm):
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError('Пользователь с таким email уже существует.')
         return email
+
+    def save(self, commit=True):
+        user = super().save(commit=commit)
+        if commit:
+            Profile.objects.get_or_create(user=user)
+        return user
+
 
 class ProfileForm(forms.ModelForm):
     username = forms.CharField(max_length=150, required=True)
@@ -44,8 +53,7 @@ class ProfileForm(forms.ModelForm):
                 raise forms.ValidationError(
                     f'Недопустимый формат. Разрешены: {", ".join(sorted(allowed_extensions))}'
                 )
-            max_size = 5 * 1024 * 1024  # 5 MB
-            if avatar.size > max_size:
+            if avatar.size > 5 * 1024 * 1024:
                 raise forms.ValidationError('Размер файла не должен превышать 5 МБ.')
         return avatar
 

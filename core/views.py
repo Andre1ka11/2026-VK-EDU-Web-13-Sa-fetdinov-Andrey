@@ -1,14 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.urls import reverse
-try:
-    from django.utils.http import is_safe_url
-except ImportError:
-    # для старых версий Django
-    from django.utils.http import url_has_allowed_host_and_scheme as is_safe_url
+from django.utils.http import url_has_allowed_host_and_scheme as is_safe_url
 from .forms import LoginForm, SignupForm, ProfileForm
-from .models import Profile
 
 def login_view(request):
     next_url = request.GET.get('next', '')
@@ -34,7 +28,6 @@ def signup_view(request):
         form = SignupForm(request.POST)
         if form.is_valid():
             user = form.save()
-            Profile.objects.get_or_create(user=user)
             login(request, user)
             return redirect('/')
     else:
