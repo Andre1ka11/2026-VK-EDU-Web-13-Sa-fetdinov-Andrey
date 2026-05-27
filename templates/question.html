@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{{ question.title }}{% endblock %}
 
@@ -70,6 +71,7 @@
 
 <h3 class="mb-3">Ответы ({{ question.answers.count }})</h3>
 
+<div id="answers-list">
 {% for answer in page %}
 <div id="answer-{{ answer.id }}" class="answer-card p-3 p-md-4 mb-3">
     <div class="row align-items-start g-3">
@@ -124,8 +126,9 @@
     </div>
 </div>
 {% empty %}
-<p>Пока нет ни одного ответа к этому вопросу. Будьте первым!</p>
+<p class="no-answers">Пока нет ни одного ответа к этому вопросу. Будьте первым!</p>
 {% endfor %}
+</div>{# /answers-list #}
 
 {% include 'pagination.html' with page=page %}
 
@@ -149,5 +152,18 @@
     <div class="mt-5 alert alert-info">
         <a href="{% url 'core:login' %}?next={{ request.path }}">Войдите</a>, чтобы оставить ответ.
     </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if centrifugo_token %}
+<div id="centrifugo-data"
+     data-ws-url="{{ centrifugo_ws_url|escapejs }}"
+     data-token="{{ centrifugo_token|escapejs }}"
+     data-channel="questions:{{ question.id }}"
+     data-page="{{ page.number }}"
+     style="display:none"></div>
+<script src="https://cdn.jsdelivr.net/npm/centrifuge@5.2.3/dist/centrifuge.umd.js"></script>
+<script src="{% static 'js/centrifugo.js' %}"></script>
 {% endif %}
 {% endblock %}
