@@ -23,8 +23,10 @@ services:
 
   web:
     build: .
-    container_name: django-web
-    command: python manage.py runserver --insecure 0.0.0.0:8000
+    container_name: gunicorn-web
+    command: >
+      sh -c "python manage.py collectstatic --noinput &&
+             gunicorn -c gunicorn.conf.py application.wsgi:application"
     volumes:
       - .:/app
     ports:
@@ -33,6 +35,31 @@ services:
       - db
       - redis
     env_file: .env.docker
+    networks:
+      - app_network
+
+  wsgi_simple:
+    build: .
+    container_name: wsgi-simple
+    command: gunicorn wsgi_simple:application --bind 0.0.0.0:8081 --workers 2
+    volumes:
+      - .:/app
+    ports:
+      - "8082:8081"
+    networks:
+      - app_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-uniask
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./staticfiles:/app/staticfiles:ro
+      - ./media:/app/media:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - web
     networks:
       - app_network
 

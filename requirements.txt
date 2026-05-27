@@ -17,3 +17,7 @@ celery-redbeat==2.3.3
 # Centrifugo
 PyJWT==2.13.0
 requests==2.34.2
+
+# Web-сервер
+gunicorn==23.0.0
+whitenoise==6.9.0
