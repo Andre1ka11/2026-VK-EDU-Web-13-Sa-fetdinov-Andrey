@@ -2,20 +2,143 @@
 
 {% block title %}Вход{% endblock %}
 
-{% block content %}
-<h1 class="mb-4">🔐 Вход в систему</h1>
+{% block extra_css %}
+<style>
+.auth-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 1rem 1rem 3rem;
+}
+.auth-card {
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.09);
+    border: 1px solid #e9edf2;
+    padding: 2.5rem 2.5rem 2rem;
+    width: 100%;
+    max-width: 420px;
+}
+.auth-logo {
+    text-align: center;
+    margin-bottom: 1.75rem;
+}
+.auth-logo h2 {
+    font-weight: 800;
+    color: #2c3e66;
+    font-size: 1.6rem;
+    margin-bottom: 0.2rem;
+}
+.auth-logo p {
+    color: #8995a9;
+    font-size: 0.92rem;
+}
+.form-floating > .form-control {
+    border-radius: 12px;
+    border: 1.5px solid #dee2e6;
+    font-size: 0.95rem;
+    padding-top: 1.4rem;
+}
+.form-floating > .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13,110,253,.12);
+}
+.form-floating > label {
+    color: #8995a9;
+    font-size: 0.9rem;
+}
+.auth-submit {
+    width: 100%;
+    border-radius: 40px;
+    padding: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+    border: none;
+    color: #fff;
+    margin-top: 0.5rem;
+    transition: all 0.2s ease;
+}
+.auth-submit:hover {
+    background: linear-gradient(135deg, #0b5ed7, #0a52be);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(13,110,253,.3);
+}
+.auth-divider {
+    text-align: center;
+    color: #c5cdd8;
+    font-size: 0.85rem;
+    margin: 1.25rem 0 1rem;
+    position: relative;
+}
+.auth-divider::before, .auth-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 42%;
+    height: 1px;
+    background: #e9ecef;
+}
+.auth-divider::before { left: 0; }
+.auth-divider::after { right: 0; }
+.auth-footer {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+.auth-footer a {
+    color: #0d6efd;
+    font-weight: 600;
+    text-decoration: none;
+}
+.auth-footer a:hover { text-decoration: underline; }
+</style>
+{% endblock %}
 
-<form method="post" action="{% url 'core:login' %}">
-    {% csrf_token %}
-    <div class="mb-3">
-        <label for="username" class="form-label">Имя пользователя</label>
-        <input type="text" class="form-control" id="username" name="username" required>
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <h2>🎓 UniAsk</h2>
+            <p>Войдите в свой аккаунт</p>
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger rounded-3 py-2" role="alert">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'core:login' %}?next={{ next }}">
+            {% csrf_token %}
+
+            <div class="form-floating mb-3">
+                <input type="text"
+                       class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+                       id="username" name="username" placeholder="username"
+                       value="{{ form.username.value|default:'' }}" required autofocus>
+                <label for="username">Имя пользователя</label>
+                {% if form.username.errors %}
+                <div class="invalid-feedback">{{ form.username.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-floating mb-3">
+                <input type="password"
+                       class="form-control {% if form.password.errors %}is-invalid{% endif %}"
+                       id="password" name="password" placeholder="password" required>
+                <label for="password">Пароль</label>
+                {% if form.password.errors %}
+                <div class="invalid-feedback">{{ form.password.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="auth-submit">Войти</button>
+        </form>
+
+        <div class="auth-divider">или</div>
+        <div class="auth-footer">
+            Нет аккаунта? <a href="{% url 'core:signup' %}">Зарегистрироваться</a>
+        </div>
     </div>
-    <div class="mb-3">
-        <label for="password" class="form-label">Пароль</label>
-        <input type="password" class="form-control" id="password" name="password" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Войти</button>
-    <a href="{% url 'core:signup' %}" class="btn btn-link">Регистрация</a>
-</form>
+</div>
 {% endblock %}

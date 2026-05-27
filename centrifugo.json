@@ -1,0 +1,10 @@
+{
+  "allowed_origins": ["*"],
+  "admin": true,
+  "namespaces": [
+    {
+      "name": "questions",
+      "force_push_join_leave": false
+    }
+  ]
+}

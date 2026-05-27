@@ -12,4 +12,5 @@ urlpatterns = [
     path('question/like/', views.question_like, name='question_like'),
     path('answer/like/', views.answer_like, name='answer_like'),
     path('answer/correct/', views.mark_correct, name='mark_correct'),
+    path('search/', views.search, name='search'),
 ]
