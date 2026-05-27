@@ -56,6 +56,7 @@
             display: flex;
             flex: 3 1 250px;
             min-width: 180px;
+            position: relative;
         }
         .search-form .form-control {
             border-radius: 40px 0 0 40px;
@@ -70,6 +71,28 @@
             padding-right: 1.2rem;
             white-space: nowrap;
         }
+        .search-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            z-index: 1050;
+            display: none;
+        }
+        .search-dropdown a {
+            display: block;
+            padding: 8px 16px;
+            color: #1f2f4e;
+            text-decoration: none;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .search-dropdown a:last-child { border-bottom: none; }
+        .search-dropdown a:hover { background: #f4f7fc; }
         .header-right {
             display: flex;
             align-items: center;
@@ -303,9 +326,11 @@
         <div class="header-container">
             <a class="navbar-brand" href="{% url 'questions:index' %}">🎓 UniAsk</a>
             <a href="{% url 'questions:hot' %}" style="font-weight:600;color:#e85d04;text-decoration:none;white-space:nowrap;">🔥 Лучшие</a>
-            <form class="search-form" action="{% url 'questions:index' %}" method="get">
-                <input class="form-control" type="search" name="q" placeholder="Поиск по сайту..." aria-label="Поиск">
+            <form class="search-form" action="{% url 'questions:index' %}" method="get" autocomplete="off">
+                <input id="search-input" class="form-control" type="search" name="q"
+                       placeholder="Поиск по сайту..." aria-label="Поиск">
                 <button class="btn btn-outline-primary" type="submit">Найти</button>
+                <div id="search-dropdown" class="search-dropdown"></div>
             </form>
             <div class="header-right">
                 <div class="header-actions">
@@ -345,8 +370,8 @@
             <div class="sidebar-card card">
                 <div class="card-header">Лучшие участники</div>
                 <div class="card-body">
-                    {% for profile in top_users %}
-                        <span class="best-member">{{ profile.user.username }} ({{ profile.rating }})</span>
+                    {% for u in top_users %}
+                        <span class="best-member">{{ u.username }} ({{ u.week_rating }})</span>
                     {% empty %}
                         <span class="text-muted small">Пока нет данных</span>
                     {% endfor %}
@@ -362,9 +387,42 @@
     </div>
 </footer>
 
+<form id="__csrf_seed" style="display:none">{% csrf_token %}</form>
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="{% static 'js/main.js' %}"></script>
+<script>
+(function () {
+    var $input = $('#search-input');
+    var $dropdown = $('#search-dropdown');
+    var searchUrl = '{% url "questions:search" %}';
+    var timer = null;
+
+    $input.on('input', function () {
+        clearTimeout(timer);
+        var q = $input.val().trim();
+        if (q.length < 2) { $dropdown.hide().empty(); return; }
+        timer = setTimeout(function () {
+            $.get(searchUrl, { q: q }, function (data) {
+                $dropdown.empty();
+                if (!data.results.length) { $dropdown.hide(); return; }
+                data.results.forEach(function (item) {
+                    $dropdown.append(
+                        $('<a>').attr('href', '/question/' + item.id + '/').text(item.title)
+                    );
+                });
+                $dropdown.show();
+            });
+        }, 300);  // debounce 300 мс
+    });
+
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('.search-form').length) {
+            $dropdown.hide();
+        }
+    });
+}());
+</script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

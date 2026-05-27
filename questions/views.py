@@ -1,8 +1,12 @@
+import time
+import jwt
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
+from django.conf import settings as django_settings
+from django.db.models import Q
 from .models import Question, Answer, Tag, QuestionLike, AnswerLike
 from .forms import AnswerForm, AskForm, VoteForm, CorrectAnswerForm
 
@@ -12,10 +16,21 @@ def paginate(objects_list, request, per_page=5):
     page_number = request.GET.get('page', 1)
     try:
         page = paginator.page(page_number)
-    except PageNotAnInteger:
+    except (PageNotAnInteger, EmptyPage):
         page = paginator.page(1)
-    except EmptyPage:
-        page = paginator.page(paginator.num_pages)
+
+    current = page.number
+    total = page.paginator.num_pages
+    pages = sorted({1, total} | set(range(max(1, current - 2), min(total + 1, current + 3))))
+    display_range = []
+    prev = None
+    for p in pages:
+        if prev is not None and p - prev > 1:
+            display_range.append(None)
+        display_range.append(p)
+        prev = p
+    page.display_range = display_range
+
     return page
 
 
@@ -39,6 +54,17 @@ def _get_user_answer_votes(user, answer_ids):
     liked = {aid for aid, v in votes if v == 1}
     disliked = {aid for aid, v in votes if v == -1}
     return liked, disliked
+
+
+def _centrifugo_token(user):
+    """JWT-токен для подключения к Centrifugo."""
+    if not user.is_authenticated:
+        return ''
+    return jwt.encode(
+        {'sub': str(user.id), 'exp': int(time.time()) + 3600},
+        django_settings.CENTRIFUGO_TOKEN_SECRET,
+        algorithm='HS256',
+    )
 
 
 def index(request):
@@ -93,7 +119,20 @@ def question_detail(request, id):
         answer_form = AnswerForm(request.POST)
         if answer_form.is_valid():
             answer = answer_form.save(user=request.user, question=question)
-            return redirect(f'{request.path}?page={page.number}#answer-{answer.id}')
+
+            # Запускаем фоновые задачи (email + centrifugo)
+            from .tasks import notify_answer_by_email, publish_new_answer
+            notify_answer_by_email.delay(question.id, request.user.username)
+            answer_data = {
+                'id': answer.id,
+                'text': answer.text,
+                'author': answer.author.username,
+                'created_at': answer.created_at.strftime('%d.%m.%Y %H:%M'),
+                'rating': answer.rating,
+            }
+            publish_new_answer.delay(question.id, answer_data)
+
+            return redirect(f'{request.path}?page=1#answer-{answer.id}')
     elif request.user.is_authenticated:
         answer_form = AnswerForm()
 
@@ -105,6 +144,8 @@ def question_detail(request, id):
         'disliked_questions': disliked_questions,
         'liked_answers': liked_answers,
         'disliked_answers': disliked_answers,
+        'centrifugo_token': _centrifugo_token(request.user),
+        'centrifugo_ws_url': django_settings.CENTRIFUGO_WS_URL,
     })
 
 
@@ -119,6 +160,36 @@ def ask(request):
         form = AskForm()
     return render(request, 'ask.html', {'form': form})
 
+
+# ── AJAX: поиск ──────────────────────────────────────────────────────────
+
+@require_GET
+def search(request):
+    query = request.GET.get('q', '').strip()
+    if len(query) < 2:
+        return JsonResponse({'results': []})
+
+    try:
+        # Полнотекстовый поиск PostgreSQL
+        from django.contrib.postgres.search import SearchVector, SearchQuery
+        questions = (
+            Question.objects
+            .annotate(search=SearchVector('title', 'text'))
+            .filter(search=SearchQuery(query))
+            .values('id', 'title')[:7]
+        )
+    except Exception:
+        # Fallback для SQLite (локальная разработка)
+        questions = (
+            Question.objects
+            .filter(Q(title__icontains=query) | Q(text__icontains=query))
+            .values('id', 'title')[:7]
+        )
+
+    return JsonResponse({'results': list(questions)})
+
+
+# ── AJAX: лайки/дизлайки ─────────────────────────────────────────────────
 
 @require_POST
 def question_like(request):
@@ -161,7 +232,6 @@ def mark_correct(request):
 
     form = CorrectAnswerForm(request.POST, user=request.user)
     if not form.is_valid():
-        # question_id не в queryset автора — значит не автор или не существует
         errors = form.errors
         if 'question_id' in errors:
             return JsonResponse({'error': 'not_author'}, status=403)
